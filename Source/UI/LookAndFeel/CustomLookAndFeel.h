@@ -112,6 +112,10 @@ public:
                       int buttonW, int buttonH,
                       ComboBox& box);
 
+    // ========= custom popup menu methods: ===========================
+
+    void drawPopupMenuBackground (Graphics&, int width, int height);
+
 private:
 
     // UNCOMMENT AFTER UPDATE
