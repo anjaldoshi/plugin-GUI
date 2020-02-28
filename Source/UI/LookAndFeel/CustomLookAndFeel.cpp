@@ -457,77 +457,30 @@ void CustomLookAndFeel::drawComboBox(Graphics& g, int width, int height,
                                      int buttonW, int buttonH,
                                      ComboBox& box)
 {
-
-    // g.fillAll(Colours::lightgrey); //box.findColour (ComboBox::backgroundColourId));
-
-    // if (box.isEnabled() && box.hasKeyboardFocus(false))
-    // {
-    //     g.setColour(Colours::lightgrey); //box.findColour (TextButton::buttonColourId));
-    //     g.drawRect(0, 0, width, height, 2);
-    // }
-    // else
-    // {
-    //     g.setColour(box.findColour(ComboBox::outlineColourId));
-    //     g.drawRect(0, 0, width, height);
-    // }
-
-    // const float outlineThickness = box.isEnabled() ? (isButtonDown ? 1.2f : 0.5f) : 0.3f;
-
-    // const Colour baseColour(Colours::orange);/*LookAndFeelHelpers::createBaseColour (box.findColour (ComboBox::buttonColourId),
-    //                                                                box.hasKeyboardFocus (true),
-    //                                                                false, isButtonDown)
-    //                             .withMultipliedAlpha (box.isEnabled() ? 1.0f : 0.5f));*/
-
-    // juce::LookAndFeel_V1::drawGlassLozenge(g,
-    //                                        buttonX + outlineThickness, buttonY + outlineThickness,
-    //                                        buttonW - outlineThickness * 2.0f, buttonH - outlineThickness * 2.0f,
-    //                                        baseColour, outlineThickness, -1.0f,
-    //                                        true, true, true, true);
-
-    // if (box.isEnabled())
-    // {
-    //     const float arrowX = 0.3f;
-    //     const float arrowH = 0.2f;
-
-    //     Path p;
-    //     p.addTriangle(buttonX + buttonW * 0.5f,            buttonY + buttonH * (0.45f - arrowH),
-    //                   buttonX + buttonW * (1.0f - arrowX), buttonY + buttonH * 0.45f,
-    //                   buttonX + buttonW * arrowX,          buttonY + buttonH * 0.45f);
-
-    //     p.addTriangle(buttonX + buttonW * 0.5f,            buttonY + buttonH * (0.55f + arrowH),
-    //                   buttonX + buttonW * (1.0f - arrowX), buttonY + buttonH * 0.55f,
-    //                   buttonX + buttonW * arrowX,          buttonY + buttonH * 0.55f);
-
-    //     g.setColour(box.findColour(ComboBox::arrowColourId));
-    //     g.fillPath(p);
-    // }
-
-    
     auto cornerSize = box.findParentComponentOfClass<ChoicePropertyComponent>() != nullptr ? 0.0f : 3.0f;
     Rectangle<int> boxBounds (0, 0, width, height);
 
     g.setColour (Colours::lightgrey);
     g.fillRoundedRectangle (boxBounds.toFloat(), cornerSize);
 
-    g.setColour (box.findColour (ComboBox::outlineColourId));
-    g.drawRoundedRectangle (boxBounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+    if (box.isPopupActive() || box.hasKeyboardFocus(false))
+    {
+        g.setColour(Colours::darkgrey);
+        g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.5f);
+    }
 
     const float outlineThickness = box.isEnabled() ? (isButtonDown ? 1.2f : 0.5f) : 0.3f;
 
     Rectangle<int> arrowZone (buttonX + outlineThickness, buttonY + outlineThickness,  
-                                buttonW - outlineThickness * 2.0f, buttonH - outlineThickness * 2.0f);
+                              buttonW - outlineThickness, buttonH - outlineThickness);
                                 
     Path path;
-    path.startNewSubPath (arrowZone.getX() + 3.0f, arrowZone.getCentreY() - 2.0f);
-    path.lineTo (static_cast<float> (arrowZone.getCentreX()), arrowZone.getCentreY() + 3.0f);
-    path.lineTo (arrowZone.getRight() - 3.0f, arrowZone.getCentreY() - 2.0f);
+    path.addTriangle(arrowZone.getCentreX() - 5.0f, arrowZone.getCentreY() - 2.0f,
+                     arrowZone.getCentreX(), arrowZone.getCentreY() + 5.0f,
+                     arrowZone.getCentreX() + 5.0f, arrowZone.getCentreY() - 2.0f);
 
     g.setColour (box.findColour (ComboBox::arrowColourId).withAlpha ((box.isEnabled() ? 0.9f : 0.2f)));
-    g.strokePath (path, PathStrokeType (2.0f));
-
-    g.setColour (box.findColour (ComboBox::outlineColourId));
-    g.drawRoundedRectangle(arrowZone.toFloat(), cornerSize, 1.0f);
-
+    g.fillPath(path);
 }
 
 
@@ -539,9 +492,6 @@ void CustomLookAndFeel::drawPopupMenuBackground (Graphics& g, int width, int hei
 
     g.fillAll (background);
     g.setColour (background.overlaidWith (Colour (0x2badd8e6)));
-
-    // for (int i = 0; i < height; i += 3)
-    //     g.fillRect (0, i, width, 1);
 
    #if ! JUCE_MAC
     g.setColour (findColour (PopupMenu::textColourId).withAlpha (0.6f));
