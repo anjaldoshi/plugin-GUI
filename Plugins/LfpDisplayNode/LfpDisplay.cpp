@@ -55,6 +55,10 @@ LfpDisplay::LfpDisplay(LfpDisplayCanvas* c, Viewport* v)
     , displaySkipAmt(0)
     , m_SpikeRasterPlottingFlag(false)
 {
+    oglContext.setRenderer(this);
+    oglContext.attachTo(*this);
+    oglContext.setSwapInterval(0);
+
     perPixelPlotter = new PerPixelBitmapPlotter(this);
     supersampledPlotter = new SupersampledBitmapPlotter(this);
     
@@ -112,6 +116,7 @@ LfpDisplay::LfpDisplay(LfpDisplayCanvas* c, Viewport* v)
 LfpDisplay::~LfpDisplay()
 {
 //    deleteAllChildren();
+    oglContext.detach();
 }
 
 int LfpDisplay::getNumChannels()
@@ -941,3 +946,17 @@ bool LfpDisplay::getEnabledState(int chan)
     return false;
 }
 
+void LfpDisplay::newOpenGLContextCreated()
+{
+    // Do something
+}
+
+void LfpDisplay::renderOpenGL()
+{
+    // Do something
+}
+
+void LfpDisplay::openGLContextClosing()
+{
+    // Do something
+}

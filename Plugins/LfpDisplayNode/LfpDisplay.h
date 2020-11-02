@@ -43,7 +43,8 @@ namespace LfpViewer {
     bitmap is drawn by the LfpViewport using Viewport::setViewedComponent.
  
  */
-class LfpDisplay : public Component
+class LfpDisplay : public Component,
+                   public OpenGLRenderer
 {
 public:
     LfpDisplay(LfpDisplayCanvas*, Viewport*);
@@ -196,10 +197,17 @@ public:
     
     TrackZoomInfo_Struct trackZoomInfo; // and create an instance here
 
+    /** OpenGLRenderer virtual methods to be overriden*/
+    void newOpenGLContextCreated() override;
+    void renderOpenGL() override;
+    void openGLContextClosing() override;
+
 private:
     
     int singleChan;
 	Array<bool> savedChannelState;
+
+    OpenGLContext oglContext;
 
     int numChans;
     int displaySkipAmt;
