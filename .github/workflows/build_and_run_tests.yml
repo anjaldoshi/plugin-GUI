@@ -1,0 +1,37 @@
+name: Build and Run Tests
+
+on:
+  pull_request:
+    paths:
+      - 'JuceLibraryCode/**'
+      - 'Plugins/**'
+      - 'Resources/**'
+      - 'Source/**'
+      - 'CMakeLists.txt'
+      - 'HelperFunctions.cmake'
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: build
+      env:
+        CC: gcc-10
+        CXX: g++-10
+      run: |
+        sudo apt update
+        cd Resources/Scripts
+        sudo ./install_linux_dependencies.sh
+        cd ../../Build && cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON ..
+        make -j8
+    - name: run tests
+      run: |
+        cd Resources/Scripts
+        chmod +x run_unit_tests_linux.sh
+        ./run_unit_tests_linux.sh
+      shell: bash
