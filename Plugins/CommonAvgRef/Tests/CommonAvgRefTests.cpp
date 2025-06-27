@@ -104,6 +104,7 @@ protected:
 TEST_F (CommonAverageRefTests, ContructorTest)
 {
     ASSERT_EQ (processor->getDisplayName(), "Common Avg Ref");
+    LOGC ("CommonAverageRefTests", "ContructorTest: ", processor->getDisplayName());
 }
 
 TEST_F (CommonAverageRefTests, SineWaveTest)
@@ -111,7 +112,11 @@ TEST_F (CommonAverageRefTests, SineWaveTest)
     const float sampleRate = 30000;
     const int bufferSize = 50;
 
+    LOGC ("CommonAverageRefTests SineWaveTest: sampleRate: ", sampleRate, ", bufferSize: ", bufferSize);
+
     processor->update();
+
+    LOGC ("CommonAverageRefTests SineWaveTest: update complete");
 
     // Set 1st channel as reference and second as affected in every stream
     for (auto stream : processor->getDataStreams())
@@ -122,6 +127,8 @@ TEST_F (CommonAverageRefTests, SineWaveTest)
         auto affectedChans = (MaskChannelsParameter*) stream->getParameter ("affected");
         affectedChans->currentValue = Array<var> ({ 1 });
     }
+
+    LOGC ("CommonAverageRefTests SineWaveTest: reference and affected channels set");
 
     Array<float> sineData = generateSineWave (150.0, 1.0, bufferSize, sampleRate);
 
@@ -138,7 +145,11 @@ TEST_F (CommonAverageRefTests, SineWaveTest)
                                                                   bufferSize);
     }
 
+    LOGC ("CommonAverageRefTests SineWaveTest: signal prepared");
+
     processor->process (*(signal.get()));
+
+    LOGC ("CommonAverageRefTests SineWaveTest: process complete");
 
     // check that signal is common average referenced
     ASSERT_TRUE (checkSamplesEqual (1, 0.0f));
