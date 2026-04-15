@@ -43,7 +43,33 @@ jobs:
     - name: build
       run: |
         msbuild Build/ALL_BUILD.vcxproj -p:Configuration=Release -p:Platform=x64 -m
+    - name: package
+      run: |
+        gui_ver=v$(grep -w CMakeLists.txt -e 'GUI_VERSION' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+(-([0-9A-Za-z\.-]+))?")
+        branch="${{github.ref_name}}"
+
+        cd Build
+        cp -r Release open-ephys
+        cp -r ../Resources/DLLs/FrontPanelUSB-DriverOnly-4.5.5.exe open-ephys
+        cp -r ../Resources/DLLs/FTD3XXDriver_WHQLCertified_1.3.0.10_Installer.exe open-ephys
+        cp ../LICENSE open-ephys
+        cp C:/Windows/System32/msvcp140.dll open-ephys
+        cp C:/Windows/System32/vcruntime140.dll open-ephys
+        cp C:/Windows/System32/vcruntime140_1.dll open-ephys
+
+        zipfile=open-ephys-${gui_ver}-windows.zip
+        powershell Compress-Archive -Path "open-ephys" -DestinationPath ${zipfile}
+        echo "ZIPFILE=Build/${zipfile}" >> $GITHUB_ENV
+        echo "ZIPNAME=${zipfile}" >> $GITHUB_ENV
+      shell: bash
+    - name: upload artifact
+      if: ${{ github.ref_name != 'development' && github.ref_name != 'testing' && github.ref_name != 'main' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ZIPNAME }}
+        path: ${{ env.ZIPFILE }}
     - name: deploy
+      if: ${{ github.ref_name == 'development' || github.ref_name == 'testing' || github.ref_name == 'main' }}
       env:
         ARTIFACTORY_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
       run: |
@@ -58,25 +84,16 @@ jobs:
           artifactory_repo=Test
         elif [ ${{github.ref_name}} == 'main' ]; then
           artifactory_repo=Release
-        else
-          echo "This branch is not configured for deployment."
-          exit 0
         fi
 
-        cd Build
-        cp -r Release open-ephys
-        cp -r ../Resources/DLLs/FrontPanelUSB-DriverOnly-4.5.5.exe open-ephys
-        cp -r ../Resources/DLLs/FTD3XXDriver_WHQLCertified_1.3.0.10_Installer.exe open-ephys
-        cp ../LICENSE open-ephys
-        cp C:/Windows/System32/msvcp140.dll open-ephys
-        cp C:/Windows/System32/vcruntime140.dll open-ephys
-        cp C:/Windows/System32/vcruntime140_1.dll open-ephys
         zipfile=open-ephys-${gui_ver}-windows${version_suffix}.zip
-        powershell Compress-Archive -Path "open-ephys" -DestinationPath ${zipfile}
-        user_info="X-JFrog-Art-Api:$ARTIFACTORY_ACCESS_TOKEN"
-        curl -H $user_info -T $zipfile "https://openephys.jfrog.io/artifactory/GUI-binaries/${artifactory_repo}/windows/$zipfile"
+        src_zipfile=Build/open-ephys-v$(grep -w CMakeLists.txt -e 'GUI_VERSION' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+(-([0-9A-Za-z\.-]+))?")-windows.zip
+        mv ${src_zipfile} Build/${zipfile}
 
-        cd open-ephys
+        user_info="X-JFrog-Art-Api:$ARTIFACTORY_ACCESS_TOKEN"
+        curl -H $user_info -T Build/${zipfile} "https://openephys.jfrog.io/artifactory/GUI-binaries/${artifactory_repo}/windows/$zipfile"
+
+        cd Build/open-ephys
         rm -f msvcp140.dll vcruntime140.dll vcruntime140_1.dll
         cd ../../Resources/Installers/Windows
         iscc "windows_installer_script.iss"
