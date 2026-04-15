@@ -888,6 +888,7 @@ void RecordNode::startRecording()
     recordThread->setFileComponents (rootFolder, experimentNumber, recordingNumber);
     recordThread->startThread();
     isRecording = true;
+    diskSpaceChecker->reset();
 
     if (settingsNeeded)
     {
